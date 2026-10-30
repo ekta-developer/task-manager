@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import api from '../api/axios.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import TaskForm from '../components/TaskForm.jsx'
-
+import { generateTaskSummary } from '../api/ai.js'
 export default function Dashboard () {
   const { user, logout } = useAuth()
   const [tasks, setTasks] = useState([])
@@ -75,23 +75,28 @@ export default function Dashboard () {
       setError(err.response?.data?.message || 'Could not update task.')
     }
   }
+
   async function generateSummary (task) {
     setSummarizing(task._id)
     setError('')
+
     try {
-      const { data } = await api.post('/ai/summarize', {
-        description: task.description || task.title
-      })
-      setSummaries(prev => ({ ...prev, [task._id]: data.summary }))
+      const summary = await generateTaskSummary(task.description || task.title)
+
+      setSummaries(prev => ({
+        ...prev,
+        [task._id]: summary
+      }))
     } catch (err) {
       setError(
         err.response?.data?.message ||
-          'Summary generation failed. Please try again.'
+          'AI summary generation failed. Please try again.'
       )
     } finally {
       setSummarizing('')
     }
   }
+
   function startEdit (task) {
     setEditing(task)
     setShowForm(true)
@@ -288,7 +293,7 @@ export default function Dashboard () {
                         ✦{' '}
                         {summarizing === task._id
                           ? 'Generating summary…'
-                          : 'Generate summary'}
+                          : 'Generate Task Summary'}
                       </button>
                       <button
                         className='text-button'
