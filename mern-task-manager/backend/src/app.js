@@ -6,7 +6,14 @@ import aiRoutes from "./routes/aiRoutes.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 const app = express();
-app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173" }));
+app.use(cors({
+    origin: [
+        "http://localhost:5173",
+        process.env.CLIENT_URL
+    ].filter(Boolean),
+    credentials: true
+}));
+
 app.use(express.json({ limit: "1mb" }));
 app.get("/api/health", (_req, res) => res.json({ status: "ok", message: "Task Manager API is running" }));
 app.use("/api/auth", authRoutes);
